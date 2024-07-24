@@ -1,10 +1,11 @@
-# backend
+# StarBooks Backend
 
 This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes the following files and folders:
 
-- `rust_app/Cargo.toml` - Project configuration file.
-- `rust_app/src/main.rs` - Code for the application's Lambda function.
-- `template.yaml` - A template that defines the application's AWS resources.
+- `Cargo.toml` - Project configuration file.
+- `lambdas/**/src/main.rs` - Code for the application's Lambda functions.
+- `template.yaml` - A template that defines the application's AWS resources using the SAM format.
+- `samconfig.toml` - SAM CLI configuration file.
 
 The application uses several AWS resources, including Lambda functions and an API Gateway API. These resources are defined in the `template.yaml` file in this project. You can update the template to add AWS resources through the same deployment process that updates your application code.
 
