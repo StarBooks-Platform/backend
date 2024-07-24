@@ -1,0 +1,16 @@
+[workspace]
+members = [
+    "lambdas/get-by-id",
+    "lambdas/put-by-id",
+    "lambdas/delete-by-id",
+    "lambdas/post",
+    "lambdas/shared",
+]
+
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+authors = ["Sami Barbut-Dica"]
+license = "MIT"
+edition = "2021"

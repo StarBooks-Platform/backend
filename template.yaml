@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  backend
+
+  Sample SAM Template for starbooks-backend
+
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  PutFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: rust-cargolambda
+      BuildProperties:
+        Binary: put-by-id
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Runtime: provided.al2
+      Architectures:
+        - x86_64
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            Path: /{id}
+            Method: PUT
+
+  GetFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: rust-cargolambda
+      BuildProperties:
+        Binary: get-by-id
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Runtime: provided.al2
+      Architectures:
+        - x86_64
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            Path: /{id}
+            Method: GET
+
+  PostFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: rust-cargolambda
+      BuildProperties:
+        Binary: post
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Runtime: provided.al2
+      Architectures:
+        - x86_64
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: POST
+
+  DeleteFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: rust-cargolambda
+      BuildProperties:
+        Binary: delete-by-id
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Runtime: provided.al2
+      Architectures:
+        - x86_64
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            Path: /{id}
+            Method: DELETE
+
+Outputs:
+  RestApi:
+    Description: "API Gateway endpoint URL for Prod stage for starbooks-backend"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/"
