@@ -1,3 +1,5 @@
+pub mod telemetry;
+
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 

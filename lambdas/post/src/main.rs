@@ -1,26 +1,28 @@
 use lambda_http::{
     http::Response, run, service_fn, Error, IntoResponse, Request, RequestPayloadExt,
 };
-
+use tracing::error;
 use shared::{Model, PostModel, ViewModel};
+use shared::telemetry::setup_telemetry;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
-        // disable printing the name of the module in every log line.
-        .with_target(false)
-        // disabling time is handy because CloudWatch will add the ingestion time.
-        .without_time()
-        .init();
-
     run(service_fn(handler)).await
 }
 
+#[tracing::instrument(
+    name = "Creating a model",
+    skip(event),
+    fields(
+        name = %event.payload::<PostModel>().unwrap_or(None).map(|m| m.name).unwrap_or("unknown".to_string())
+    )
+)]
 async fn handler(event: Request) -> Result<impl IntoResponse, Error> {
+    let tracer = setup_telemetry("starbooks".into(), "info".into(), std::io::stdout);
+    
     let body = event.payload::<PostModel>();
 
-    match body {
+    let resp = match body {
         Ok(item) => {
             match item {
                 Some(i) => {
@@ -34,7 +36,10 @@ async fn handler(event: Request) -> Result<impl IntoResponse, Error> {
                         .status(201)
                         .header("content-type", "text/json")
                         .body(serde_model)
-                        .map_err(Box::new)?;
+                        .map_err(|e| {
+                            error!("Failed to serialize the model: {:?}", e);
+                            e
+                        })?;
                     Ok(resp)
                 }
                 None => {
@@ -42,7 +47,10 @@ async fn handler(event: Request) -> Result<impl IntoResponse, Error> {
                         .status(400)
                         .header("content-type", "text/json")
                         .body("".to_string())
-                        .map_err(Box::new)?;
+                        .map_err(|e| {
+                            error!("Failed to serialize the model: {:?}", e);
+                            e
+                        })?;
                     Ok(resp)
                 }
             }
@@ -52,8 +60,15 @@ async fn handler(event: Request) -> Result<impl IntoResponse, Error> {
                 .status(400)
                 .header("content-type", "text/json")
                 .body(e.to_string())
-                .map_err(Box::new)?;
+                .map_err(|e| {
+                    error!("Failed to serialize the model: {:?}", e);
+                    e
+                })?;
             Ok(resp)
         }
-    }
+    };
+    
+    tracer.force_flush();
+    
+    resp
 }

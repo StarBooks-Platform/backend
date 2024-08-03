@@ -8,5 +8,18 @@ edition.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde = { version = "1.0.197", features = ["derive"] }
-uuid = { version = "1.7.0", features = ["v4","fast-rng","macro-diagnostics"]}
+serde = { workspace = true, features = ["derive"] }
+uuid = { workspace = true, features = ["v4","fast-rng","macro-diagnostics"]}
+opentelemetry = { workspace = true, features = ["trace"] }
+opentelemetry-otlp = { workspace = true, features = ["http-proto", "reqwest-client"] }
+opentelemetry-semantic-conventions = { workspace = true }
+opentelemetry_sdk = { workspace = true, features = ["rt-tokio", "rt-tokio-current-thread"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["registry", "env-filter", "std", "fmt"] }
+tracing-bunyan-formatter = { workspace = true }
+tracing-log = { workspace = true }
+tracing-opentelemetry = { workspace = true, features = ["tracing-log", "async-trait", "default"] }
+reqwest = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+secrecy = { workspace = true, features = ["serde"] }
+openssl = { workspace = true, features = ["vendored"] }

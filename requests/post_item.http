@@ -1,0 +1,6 @@
+POST {{api_base_url}}
+Content-Type: application/json
+
+{
+    "name": "sami"
+}

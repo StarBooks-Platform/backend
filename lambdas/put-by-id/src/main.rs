@@ -1,33 +1,35 @@
 use lambda_http::{
-    run, service_fn, Body, Error, IntoResponse, Request, RequestExt, RequestPayloadExt, Response,
+    run, service_fn, Error, IntoResponse, Request, RequestExt, RequestPayloadExt, Response,
 };
-use shared::{Model, PostModel, PutModel, ViewModel};
+use shared::{Model, PutModel, ViewModel};
 use tracing::info;
+use shared::telemetry::setup_telemetry;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
-        // disable printing the name of the module in every log line.
-        .with_target(false)
-        // disabling time is handy because CloudWatch will add the ingestion time.
-        .without_time()
-        .init();
-
     run(service_fn(handler)).await
 }
 
+#[tracing::instrument(
+    name = "Updating a model by id",
+    skip(event),
+    fields(
+        id = %event.path_parameters_ref().and_then(|params| params.first("id")).unwrap_or("unknown"),
+        name = %event.payload::<PutModel>().unwrap_or(None).map(|m| m.name).unwrap_or("unknown".to_string())
+    )
+)]
 async fn handler(event: Request) -> Result<impl IntoResponse, Error> {
+    let tracer = setup_telemetry("starbooks".into(), "info".into(), std::io::stdout);
+    
     // get the path parameter
-    let id = event
+    let _id = event
         .path_parameters_ref()
         .and_then(|params| params.first("id"))
         .unwrap();
-    info!("id: {:?}", id);
 
     let body = event.payload::<PutModel>();
 
-    match body {
+    let resp = match body {
         Ok(item) => {
             match item {
                 Some(i) => {
@@ -41,7 +43,10 @@ async fn handler(event: Request) -> Result<impl IntoResponse, Error> {
                         .status(200)
                         .header("content-type", "text/json")
                         .body(serde_model)
-                        .map_err(Box::new)?;
+                        .map_err(|e| {
+                            info!("Failed to serialize the model: {:?}", e);
+                            e
+                        })?;
                     Ok(resp)
                 }
                 None => {
@@ -49,7 +54,10 @@ async fn handler(event: Request) -> Result<impl IntoResponse, Error> {
                         .status(400)
                         .header("content-type", "text/json")
                         .body("".to_string())
-                        .map_err(Box::new)?;
+                        .map_err(|e| {
+                            info!("Failed to serialize the model: {:?}", e);
+                            e
+                        })?;
                     Ok(resp)
                 }
             }
@@ -59,8 +67,15 @@ async fn handler(event: Request) -> Result<impl IntoResponse, Error> {
                 .status(400)
                 .header("content-type", "text/json")
                 .body(e.to_string())
-                .map_err(Box::new)?;
+                .map_err(|e| {
+                    info!("Failed to serialize the model: {:?}", e);
+                    e
+                })?;
             Ok(resp)
         }
-    }
+    };
+    
+    tracer.force_flush();
+    
+    resp
 }

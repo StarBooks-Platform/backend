@@ -1,0 +1,7 @@
+PUT {{api_base_url}}/1
+Content-Type: application/json
+
+{
+  "id": "1",
+  "name": "sami"
+}

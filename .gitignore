@@ -15,3 +15,5 @@
 
 .idea/
 .aws-sam/
+
+requests/http-client.env.json
